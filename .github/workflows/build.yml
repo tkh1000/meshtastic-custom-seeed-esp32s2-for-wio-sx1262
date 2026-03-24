@@ -1,97 +1,78 @@
-name: Build Meshtastic - Seeed XIAO ESP32S3 + Wio SX1262 (Header Pins)
+name: Build Meshtastic Firmware
 
 on:
   workflow_dispatch:
-  push:
-    branches: [ main ]
 
 jobs:
   build:
-    name: Build firmware
     runs-on: ubuntu-latest
     timeout-minutes: 60
 
     steps:
-      - name: Check out Meshtastic firmware
+
+      - name: Checkout this repo
+        uses: actions/checkout@v4
+
+      - name: Checkout Meshtastic firmware
         uses: actions/checkout@v4
         with:
           repository: meshtastic/firmware
           ref: master
           submodules: recursive
           fetch-depth: 1
+          path: firmware
 
       - name: Cache PlatformIO
         uses: actions/cache@v4
         with:
           path: |
             ~/.platformio
-            .pio
-          key: pio-${{ runner.os }}-${{ hashFiles('platformio.ini') }}
-          restore-keys: |
-            pio-${{ runner.os }}-
+            firmware/.pio
+          key: pio-${{ runner.os }}-${{ hashFiles('firmware/platformio.ini') }}
+          restore-keys: pio-${{ runner.os }}-
 
       - name: Install PlatformIO
-        run: |
-          python -m pip install --upgrade pip
-          pip install platformio
+        run: pip install platformio
 
-      - name: Patch variant.h (header pins, not B2B)
+      - name: Find and patch variant.h
         run: |
-          VARIANT=$(find variants -name "variant.h" | grep -i "seeed.xiao.s3" | head -1)
-          echo "Found variant.h at: $VARIANT"
+          VARIANT=$(find firmware/variants -name "variant.h" | grep -i "seeed.xiao.s3" | head -1)
+          echo "Patching: $VARIANT"
           python3 patch_variant.py "$VARIANT"
-
-      - name: Show patched variant.h
-        run: |
-          VARIANT=$(find variants -name "variant.h" | grep -i "seeed.xiao.s3" | head -1)
           cat "$VARIANT"
 
-      - name: Build seeed-xiao-s3 target
-        run: pio run -e seeed-xiao-s3
-
-      - name: Package firmware for web flasher
+      - name: Build firmware
         run: |
-          mkdir -p dist/flasher
-          BUILD=".pio/build/seeed-xiao-s3"
+          cd firmware
+          pio run -e seeed-xiao-s3
 
-          echo "=== Build outputs ==="
-          find "$BUILD" -name "*.bin" | sort
+      - name: List build outputs
+        run: find firmware/.pio/build/seeed-xiao-s3 -name "*.bin" | sort
 
-          cp "$BUILD/bootloader.bin" dist/flasher/bootloader.bin
-          cp "$BUILD/partitions.bin" dist/flasher/partitions.bin
+      - name: Package for web flasher
+        run: |
+          mkdir -p package
+          BUILD="firmware/.pio/build/seeed-xiao-s3"
 
-          FW=$(find "$BUILD" -maxdepth 2 -name "firmware.bin" | head -1)
+          cp "$BUILD/bootloader.bin" package/bootloader.bin
+          cp "$BUILD/partitions.bin" package/partitions.bin
+
+          FW=$(find "$BUILD" -name "firmware.bin" | head -1)
           if [ -z "$FW" ]; then
-            FW=$(find "$BUILD" -maxdepth 2 -name "*.bin" ! -name "bootloader.bin" ! -name "partitions.bin" | head -1)
+            FW=$(find "$BUILD" -name "*.bin" ! -name "bootloader.bin" ! -name "partitions.bin" | head -1)
           fi
-          echo "Firmware: $FW"
-          cp "$FW" dist/flasher/firmware.bin
+          echo "Firmware binary: $FW"
+          cp "$FW" package/firmware.bin
 
-          cat > dist/flasher/manifest.json << 'MANIFEST'
-{
-  "name": "Meshtastic - XIAO ESP32S3 + Wio SX1262 (Header Pins)",
-  "new_install_prompt_erase": true,
-  "builds": [
-    {
-      "chipFamily": "ESP32-S3",
-      "parts": [
-        { "path": "bootloader.bin", "offset": 0 },
-        { "path": "partitions.bin", "offset": 32768 },
-        { "path": "firmware.bin",   "offset": 65536 }
-      ]
-    }
-  ]
-}
-MANIFEST
+          printf '{\n  "name": "Meshtastic XIAO ESP32S3 Wio SX1262 Header Pins",\n  "new_install_prompt_erase": true,\n  "builds": [{\n    "chipFamily": "ESP32-S3",\n    "parts": [\n      { "path": "bootloader.bin", "offset": 0 },\n      { "path": "partitions.bin", "offset": 32768 },\n      { "path": "firmware.bin", "offset": 65536 }\n    ]\n  }]\n}\n' > package/manifest.json
 
-          cd dist/flasher
-          zip ../firmware-xiao-esp32s3-wio-sx1262.zip bootloader.bin partitions.bin firmware.bin manifest.json
-          cd ../..
-          ls -lh dist/
+          cat package/manifest.json
+          ls -lh package/
+          cd package && zip ../meshtastic-xiao-wio-sx1262.zip bootloader.bin partitions.bin firmware.bin manifest.json
 
-      - name: Upload firmware
+      - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: meshtastic-xiao-esp32s3-wio-sx1262-header-pins
-          path: dist/firmware-xiao-esp32s3-wio-sx1262.zip
+          name: meshtastic-xiao-wio-sx1262
+          path: meshtastic-xiao-wio-sx1262.zip
           retention-days: 30
