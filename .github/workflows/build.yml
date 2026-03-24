@@ -1,7 +1,7 @@
 name: Build Meshtastic – Seeed XIAO ESP32S3 + Wio SX1262 (Header Pins)
 
 on:
-  workflow_dispatch:          # run manually from the Actions tab
+  workflow_dispatch:
   push:
     branches: [ main ]
     paths:
@@ -24,7 +24,7 @@ jobs:
           submodules: recursive
           fetch-depth: 1
 
-      # ── 2. Cache PlatformIO packages (speeds up repeat builds a lot) ─────
+      # ── 2. Cache PlatformIO packages ─────────────────────────────────────
       - name: Cache PlatformIO
         uses: actions/cache@v4
         with:
@@ -42,78 +42,72 @@ jobs:
           pip install platformio
 
       # ── 4. Patch variant.h with correct header-pin definitions ───────────
-      #    The official seeed-xiao-s3 target uses B2B (kit) pins.
-      #    We overwrite only the LoRa pin block to match the standalone
-      #    Wio-SX1262 board wired via the physical header pins.
       - name: Patch variant.h (header pins, not B2B)
         run: |
-          # Find the actual path regardless of naming convention
           VARIANT=$(find variants -name "variant.h" | grep -i "seeed.xiao.s3" | head -1)
           echo "Found variant.h at: $VARIANT"
 
           python3 - "$VARIANT" <<'PYEOF'
-          import re, pathlib, sys
+import re, pathlib, sys
 
-          path = pathlib.Path(sys.argv[1])
-          text = path.read_text()
+path = pathlib.Path(sys.argv[1])
+text = path.read_text()
 
-          # Strip any existing LoRa/SX126x pin block
-          patterns = [
-              r'#define\s+USE_SX1262[^\n]*\n',
-              r'#define\s+LORA_MISO[^\n]*\n',
-              r'#define\s+LORA_SCK[^\n]*\n',
-              r'#define\s+LORA_MOSI[^\n]*\n',
-              r'#define\s+LORA_CS[^\n]*\n',
-              r'#define\s+LORA_RESET[^\n]*\n',
-              r'#define\s+LORA_DIO1[^\n]*\n',
-              r'#define\s+SX126X_CS[^\n]*\n',
-              r'#define\s+SX126X_DIO1[^\n]*\n',
-              r'#define\s+SX126X_BUSY[^\n]*\n',
-              r'#define\s+SX126X_RESET[^\n]*\n',
-              r'#define\s+SX126X_DIO2_AS_RF_SWITCH[^\n]*\n',
-              r'#define\s+SX126X_RXEN[^\n]*\n',
-              r'#define\s+SX126X_TXEN[^\n]*\n',
-              r'#define\s+SX126X_DIO3_TCXO_VOLTAGE[^\n]*\n',
-          ]
-          for p in patterns:
-              text = re.sub(p, '', text)
+patterns = [
+    r'#define\s+USE_SX1262[^\n]*\n',
+    r'#define\s+LORA_MISO[^\n]*\n',
+    r'#define\s+LORA_SCK[^\n]*\n',
+    r'#define\s+LORA_MOSI[^\n]*\n',
+    r'#define\s+LORA_CS[^\n]*\n',
+    r'#define\s+LORA_RESET[^\n]*\n',
+    r'#define\s+LORA_DIO1[^\n]*\n',
+    r'#define\s+SX126X_CS[^\n]*\n',
+    r'#define\s+SX126X_DIO1[^\n]*\n',
+    r'#define\s+SX126X_BUSY[^\n]*\n',
+    r'#define\s+SX126X_RESET[^\n]*\n',
+    r'#define\s+SX126X_DIO2_AS_RF_SWITCH[^\n]*\n',
+    r'#define\s+SX126X_RXEN[^\n]*\n',
+    r'#define\s+SX126X_TXEN[^\n]*\n',
+    r'#define\s+SX126X_DIO3_TCXO_VOLTAGE[^\n]*\n',
+]
+for p in patterns:
+    text = re.sub(p, '', text)
 
-          # Inject new pin block just before the final #endif
-          new_block = """
-          // =====================================================================
-          // Wio-SX1262 via HEADER PINS (standalone board, NOT the B2B kit)
-          // Pinout confirmed for Seeed Wio-SX1262-for-XIAO (p-6379)
-          // =====================================================================
-          #define USE_SX1262
+new_block = """
+// =====================================================================
+// Wio-SX1262 via HEADER PINS (standalone board, NOT the B2B kit)
+// Pinout for Seeed Wio-SX1262-for-XIAO (p-6379)
+// =====================================================================
+#define USE_SX1262
 
-          #define LORA_MISO        8
-          #define LORA_SCK         7
-          #define LORA_MOSI        9
-          #define LORA_CS          5
-          #define LORA_RESET       3
-          #define LORA_DIO1        2
+#define LORA_MISO        8
+#define LORA_SCK         7
+#define LORA_MOSI        9
+#define LORA_CS          5
+#define LORA_RESET       3
+#define LORA_DIO1        2
 
-          #define SX126X_CS        LORA_CS
-          #define SX126X_DIO1      LORA_DIO1
-          #define SX126X_BUSY      4
-          #define SX126X_RESET     LORA_RESET
+#define SX126X_CS        LORA_CS
+#define SX126X_DIO1      LORA_DIO1
+#define SX126X_BUSY      4
+#define SX126X_RESET     LORA_RESET
 
-          // DIO2 drives the integrated RF antenna switch
-          #define SX126X_DIO2_AS_RF_SWITCH
-          #define SX126X_RXEN      6
-          #define SX126X_TXEN      RADIOLIB_NC
+// DIO2 drives the integrated RF antenna switch
+#define SX126X_DIO2_AS_RF_SWITCH
+#define SX126X_RXEN      6
+#define SX126X_TXEN      RADIOLIB_NC
 
-          // DIO3 supplies the TCXO reference voltage
-          #define SX126X_DIO3_TCXO_VOLTAGE  1.8
+// DIO3 supplies the TCXO reference voltage
+#define SX126X_DIO3_TCXO_VOLTAGE  1.8
 
-          """
+"""
 
-          text = re.sub(r'(#endif\s*//[^\n]*$)', new_block + r'\1', text, flags=re.MULTILINE)
-          path.write_text(text)
-          print("variant.h patched successfully")
-          PYEOF
+text = re.sub(r'(#endif\s*//[^\n]*$)', new_block + r'\1', text, flags=re.MULTILINE)
+path.write_text(text)
+print("variant.h patched successfully")
+PYEOF
 
-      # ── 5. Show patched file (useful for debugging in the Actions log) ───
+      # ── 5. Show patched file ──────────────────────────────────────────────
       - name: Show patched variant.h
         run: |
           VARIANT=$(find variants -name "variant.h" | grep -i "seeed.xiao.s3" | head -1)
@@ -123,23 +117,59 @@ jobs:
       - name: Build seeed-xiao-s3 target
         run: pio run -e seeed-xiao-s3
 
-      # ── 7. Collect artefacts ──────────────────────────────────────────────
-      - name: Collect build artefacts
+      # ── 7. Collect artefacts & build web-flasher zip ──────────────────────
+      - name: Collect and package artefacts
         run: |
-          mkdir -p dist
-          # Copy the flashable zip (used by flasher.meshtastic.org)
-          find .pio/build/seeed-xiao-s3 -name "*.zip" -exec cp {} dist/ \;
-          # Also copy the raw .bin in case you want to use esptool manually
-          find .pio/build/seeed-xiao-s3 -name "firmware.bin" -exec cp {} dist/ \;
-          # Bootloader + partition table (needed for a clean flash via esptool)
-          find .pio/build/seeed-xiao-s3 -name "bootloader.bin" -exec cp {} dist/ \; 2>/dev/null || true
-          find .pio/build/seeed-xiao-s3 -name "partitions.bin"  -exec cp {} dist/ \; 2>/dev/null || true
-          ls -lh dist/
+          mkdir -p dist/flasher
+          BUILD=".pio/build/seeed-xiao-s3"
 
-      # ── 8. Upload as a GitHub Actions artefact ────────────────────────────
+          echo "=== All build outputs ==="
+          find "$BUILD" -name "*.bin" -o -name "*.zip" -o -name "*.elf" | sort
+          echo "========================="
+
+          cp "$BUILD/bootloader.bin" dist/flasher/bootloader.bin
+          cp "$BUILD/partitions.bin" dist/flasher/partitions.bin
+
+          # Find the main firmware binary (not bootloader or partitions)
+          FW=$(find "$BUILD" -maxdepth 2 -name "firmware.bin" | head -1)
+          if [ -z "$FW" ]; then
+            FW=$(find "$BUILD" -maxdepth 2 -name "*.bin" \
+              ! -name "bootloader.bin" ! -name "partitions.bin" | head -1)
+          fi
+          echo "Using firmware binary: $FW"
+          cp "$FW" dist/flasher/firmware.bin
+
+          # Write manifest.json required by flasher.meshtastic.org
+          cat > dist/flasher/manifest.json << 'MANIFEST'
+          {
+            "name": "Meshtastic - XIAO ESP32S3 + Wio SX1262 (Header Pins)",
+            "new_install_prompt_erase": true,
+            "builds": [
+              {
+                "chipFamily": "ESP32-S3",
+                "parts": [
+                  { "path": "bootloader.bin", "offset": 0 },
+                  { "path": "partitions.bin",  "offset": 32768 },
+                  { "path": "firmware.bin",    "offset": 65536 }
+                ]
+              }
+            ]
+          }
+          MANIFEST
+
+          cd dist/flasher
+          zip ../firmware-xiao-esp32s3-wio-sx1262-header-pins.zip \
+            bootloader.bin partitions.bin firmware.bin manifest.json
+          cd ../..
+
+          echo "=== Final dist ==="
+          ls -lh dist/
+          ls -lh dist/flasher/
+
+      # ── 8. Upload artefact ────────────────────────────────────────────────
       - name: Upload firmware artefact
         uses: actions/upload-artifact@v4
         with:
           name: meshtastic-xiao-esp32s3-wio-sx1262-header-pins
-          path: dist/
+          path: dist/firmware-xiao-esp32s3-wio-sx1262-header-pins.zip
           retention-days: 30
