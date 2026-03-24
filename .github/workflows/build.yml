@@ -42,21 +42,18 @@ jobs:
           cat "$VARIANT"
 
       - name: Build firmware
-        run: |
-          cd firmware
-          pio run -e seeed-xiao-s3
+        working-directory: firmware
+        run: pio run -e seeed-xiao-s3
 
       - name: List build outputs
         run: find firmware/.pio/build/seeed-xiao-s3 -name "*.bin" | sort
 
-      - name: Package for web flasher
+      - name: Copy binaries
         run: |
           mkdir -p package
           BUILD="firmware/.pio/build/seeed-xiao-s3"
-
           cp "$BUILD/bootloader.bin" package/bootloader.bin
           cp "$BUILD/partitions.bin" package/partitions.bin
-
           FW=$(find "$BUILD" -name "firmware.bin" | head -1)
           if [ -z "$FW" ]; then
             FW=$(find "$BUILD" -name "*.bin" ! -name "bootloader.bin" ! -name "partitions.bin" | head -1)
@@ -64,11 +61,25 @@ jobs:
           echo "Firmware binary: $FW"
           cp "$FW" package/firmware.bin
 
-          printf '{\n  "name": "Meshtastic XIAO ESP32S3 Wio SX1262 Header Pins",\n  "new_install_prompt_erase": true,\n  "builds": [{\n    "chipFamily": "ESP32-S3",\n    "parts": [\n      { "path": "bootloader.bin", "offset": 0 },\n      { "path": "partitions.bin", "offset": 32768 },\n      { "path": "firmware.bin", "offset": 65536 }\n    ]\n  }]\n}\n' > package/manifest.json
-
+      - name: Write manifest
+        run: |
+          echo '{' > package/manifest.json
+          echo '  "name": "Meshtastic XIAO ESP32S3 Wio SX1262 Header Pins",' >> package/manifest.json
+          echo '  "new_install_prompt_erase": true,' >> package/manifest.json
+          echo '  "builds": [{' >> package/manifest.json
+          echo '    "chipFamily": "ESP32-S3",' >> package/manifest.json
+          echo '    "parts": [' >> package/manifest.json
+          echo '      { "path": "bootloader.bin", "offset": 0 },' >> package/manifest.json
+          echo '      { "path": "partitions.bin", "offset": 32768 },' >> package/manifest.json
+          echo '      { "path": "firmware.bin", "offset": 65536 }' >> package/manifest.json
+          echo '    ]' >> package/manifest.json
+          echo '  }]' >> package/manifest.json
+          echo '}' >> package/manifest.json
           cat package/manifest.json
-          ls -lh package/
-          cd package && zip ../meshtastic-xiao-wio-sx1262.zip bootloader.bin partitions.bin firmware.bin manifest.json
+
+      - name: Zip package
+        working-directory: package
+        run: zip ../meshtastic-xiao-wio-sx1262.zip bootloader.bin partitions.bin firmware.bin manifest.json
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
