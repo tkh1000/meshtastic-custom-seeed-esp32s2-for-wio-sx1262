@@ -47,13 +47,14 @@ jobs:
       #    Wio-SX1262 board wired via the physical header pins.
       - name: Patch variant.h (header pins, not B2B)
         run: |
-          VARIANT="variants/esp32s3/seeed-xiao-s3/variant.h"
+          # Find the actual path regardless of naming convention
+          VARIANT=$(find variants -name "variant.h" | grep -i "seeed.xiao.s3" | head -1)
+          echo "Found variant.h at: $VARIANT"
 
-          # ── Remove old LoRa pin definitions ──────────────────────────────
-          python3 - <<'PYEOF'
-          import re, pathlib
+          python3 - "$VARIANT" <<'PYEOF'
+          import re, pathlib, sys
 
-          path = pathlib.Path("variants/esp32s3/seeed-xiao-s3/variant.h")
+          path = pathlib.Path(sys.argv[1])
           text = path.read_text()
 
           # Strip any existing LoRa/SX126x pin block
@@ -114,7 +115,9 @@ jobs:
 
       # ── 5. Show patched file (useful for debugging in the Actions log) ───
       - name: Show patched variant.h
-        run: cat variants/esp32s3/seeed-xiao-s3/variant.h
+        run: |
+          VARIANT=$(find variants -name "variant.h" | grep -i "seeed.xiao.s3" | head -1)
+          cat "$VARIANT"
 
       # ── 6. Build ──────────────────────────────────────────────────────────
       - name: Build seeed-xiao-s3 target
