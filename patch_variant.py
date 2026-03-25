@@ -10,9 +10,9 @@ print("Files:", list(variant_dir.iterdir()))
 # D1=3, D2=4, D3=5, D4=6, D8=8, D9=9, D10=10
 PIN_BLOCK = """
 #define USE_SX1262
-#define LORA_MOSI        10
-#define LORA_MISO        9
-#define LORA_SCK         8
+#define LORA_MOSI        9
+#define LORA_MISO        8
+#define LORA_SCK         7
 #define LORA_DIO1        2
 #define LORA_RESET       3
 #define LORA_CS          5
