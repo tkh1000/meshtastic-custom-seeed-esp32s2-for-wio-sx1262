@@ -20,7 +20,7 @@ PIN_BLOCK = """
 #define SX126X_CS        LORA_CS
 #define SX126X_DIO1      LORA_DIO1
 
-#define SX126X_BUSY RADIOLIB_NC
+#define SX126X_BUSY      4
 #define SX126X_RESET     LORA_RESET
 #define SX126X_DIO2_AS_RF_SWITCH
 #define SX126X_RXEN      RADIOLIB_NC
