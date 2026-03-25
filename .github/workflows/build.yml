@@ -17,9 +17,9 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: meshtastic/firmware
-          ref: master
+          ref: v2.7.15.567b8ea
           submodules: recursive
-          fetch-depth: 1
+          fetch-depth: 0
           path: firmware
 
       - name: Cache PlatformIO
