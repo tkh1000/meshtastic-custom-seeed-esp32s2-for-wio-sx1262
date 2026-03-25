@@ -19,16 +19,16 @@ Wio SX1262 board and wired it yourself, those pins are wrong and LoRa will not w
 This repo patches the `variant.h` pin definitions at build time to use the correct
 **header-accessible GPIO pins**:
 
-| Signal          | GPIO |
+| SX1262 Pin      |SEEED ESP32s3|
 |-----------------|------|
-| LORA_MOSI       | 9    |
-| LORA_MISO       | 8    |
-| LORA_SCK        | 7    |
-| LORA_CS         | 5    |
-| LORA_RESET      | 3    |
-| LORA_DIO1       | 2    |
-| SX126X_BUSY     | 4    |
-| SX126X_RXEN     | 6    |
+| LORA_MOSI       | 10   |
+| LORA_MISO       | 9    |
+| LORA_SCK        | 8    |
+| LORA_CS         | 4    |
+| LORA_RESET      | 2    |
+| LORA_DIO1       | 1    |
+| SX126X_BUSY     | 3    |
+| SX126X_RXEN     | 5    |
 | TCXO voltage    | 1.8V |
 
 ---
@@ -70,23 +70,23 @@ git push -u origin main
 
 ## How to Flash
 
-### Option A — Meshtastic Web Flasher (easiest)
+### Option A — Meshtastic Web Flasher (haven't gotten this to work successful)
 1. Go to [flasher.meshtastic.org](https://flasher.meshtastic.org)
 2. Connect your XIAO ESP32S3 via USB
 3. Click **Custom firmware** (or drag-and-drop the `.zip` from the artifact)
 4. Follow the on-screen steps
 
-### Option B — esptool (manual)
+### Option B — esptool (manual, mac)
 ```bash
-pip install esptool
+python3 -m pip install esptool
 
-esptool.py --chip esp32s3 --port /dev/ttyUSB0 \
-  --baud 921600 write_flash \
-  0x0000  bootloader.bin \
-  0x8000  partitions.bin \
-  0x10000 firmware.bin
+cd ~/Downloads/[EXTRACTED ARTIFACTS FOLDER]
+
+
+python3 -m esptool --chip esp32s3 --port /dev/tty.usbmodem101 --baud 921600 write_flash 0x0000 bootloader.bin 0x8000 partitions.bin 0x10000 firmware.bin
+
 ```
-Replace `/dev/ttyUSB0` with your actual port (`COM3`, `/dev/tty.usbserial-...`, etc.).
+Replace `/dev/tty.usbmodem101` with your actual port (`COM3`, `/dev/tty.usbserial-...`, etc.).
 
 ---
 
@@ -95,19 +95,7 @@ Replace `/dev/ttyUSB0` with your actual port (`COM3`, `/dev/tty.usbserial-...`, 
 Wire the standalone Wio SX1262 to your XIAO ESP32S3 header:
 
 ```
-XIAO ESP32S3 Pin   →   Wio SX1262 Pin
-──────────────────────────────────────
-D0  (GPIO 1)           (not used)
-D1  (GPIO 2)       →   DIO1
-D2  (GPIO 3)       →   RESET
-D3  (GPIO 4)       →   BUSY
-D4  (GPIO 5)       →   NSS / CS
-D5  (GPIO 6)       →   DIO2 / RXEN
-D7  (GPIO 7)       →   SCK
-D8  (GPIO 8)       →   MISO
-D9  (GPIO 9)       →   MOSI
-3V3                →   VCC
-GND                →   GND
+
 ```
 
 ---
