@@ -87,7 +87,7 @@ python3 -m esptool --chip esp32s3 --port /dev/tty.usbmodem101 --baud 921600 writ
 
 ```
 Replace `/dev/tty.usbmodem101` with your actual port (`COM3`, `/dev/tty.usbserial-...`, etc.).
-
+Check with `ls /dev/tty.*`
 ---
 
 ## Wiring Reference
