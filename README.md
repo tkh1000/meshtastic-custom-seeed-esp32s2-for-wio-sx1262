@@ -19,17 +19,23 @@ Wio SX1262 board and wired it yourself, those pins are wrong and LoRa will not w
 This repo patches the `variant.h` pin definitions at build time to use the correct
 **header-accessible GPIO pins**:
 
-| SX1262 Pin      |SEEED ESP32s3|
-|-----------------|------|
-| LORA_MOSI       | 10   |
-| LORA_MISO       | 9    |
-| LORA_SCK        | 8    |
-| LORA_CS         | 4    |
-| LORA_RESET      | 2    |
-| LORA_DIO1       | 1    |
-| SX126X_BUSY     | 3    |
-| SX126X_RXEN     | 5    |
-| TCXO voltage    | 1.8V |
+| SX1262 Pin      |SEEED ESP32s3 Pin (NOT GPIO) |
+|-----------------|-------------|
+| LORA_MOSI       | 10          |
+| LORA_MISO       | 9           |
+| LORA_SCK        | 8           |
+| LORA_CS         | 4           |
+| LORA_RESET      | 2           |
+| LORA_DIO1       | 1           |
+
+All Other pins can stack normally as such
+
+| SX1262 Pin      |SEEED ESP32s3 Pin (NOT GPIO) |
+|-----------------|-------------|
+| LORA_MOSI       | 10          |
+| LORA_MISO       | 9           |
+| LORA_SCK        | 8           |
+
 
 ---
 
