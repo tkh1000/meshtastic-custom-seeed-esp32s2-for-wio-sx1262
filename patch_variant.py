@@ -13,12 +13,14 @@ PIN_BLOCK = """
 #define LORA_MOSI        10
 #define LORA_MISO        9
 #define LORA_SCK         8
-#define LORA_DIO1        3
-#define LORA_RESET       4
-#define LORA_CS          6
+#define LORA_DIO1        2
+#define LORA_RESET       3
+#define LORA_CS          5
+
 #define SX126X_CS        LORA_CS
 #define SX126X_DIO1      LORA_DIO1
-#define SX126X_BUSY      5
+
+#define SX126X_BUSY      4
 #define SX126X_RESET     LORA_RESET
 #define SX126X_DIO2_AS_RF_SWITCH
 #define SX126X_RXEN      RADIOLIB_NC
