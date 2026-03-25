@@ -42,7 +42,7 @@ PIN_BLOCK = """
 #define SX126X_BUSY      4
 #define SX126X_RESET     3
 #define SX126X_DIO2_AS_RF_SWITCH
-#define SX126X_RXEN      RADIOLIB_NC
+#define SX126X_RXEN      6
 #define SX126X_TXEN      RADIOLIB_NC
 #define SX126X_DIO3_TCXO_VOLTAGE 1.8
 #define PIN_SPI_MOSI     9
