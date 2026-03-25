@@ -48,7 +48,7 @@ jobs:
       - name: List build outputs
         run: find firmware/.pio/build/seeed-xiao-s3 -name "*.bin" | sort
 
-      - name: Copy binaries
+      - name: Package firmware
         run: |
           mkdir -p package
           BUILD="firmware/.pio/build/seeed-xiao-s3"
@@ -61,23 +61,33 @@ jobs:
           echo "Firmware binary: $FW"
           cp "$FW" package/firmware.bin
 
-      - name: Write manifest
-        run: |
-          echo '{' > package/manifest.json
-          echo '  "name": "Meshtastic XIAO ESP32S3 Wio SX1262 Header Pins",' >> package/manifest.json
-          echo '  "new_install_prompt_erase": true,' >> package/manifest.json
-          echo '  "builds": [{' >> package/manifest.json
-          echo '    "chipFamily": "ESP32-S3",' >> package/manifest.json
-          echo '    "parts": [' >> package/manifest.json
-          echo '      { "path": "bootloader.bin", "offset": 0 },' >> package/manifest.json
-          echo '      { "path": "partitions.bin", "offset": 32768 },' >> package/manifest.json
-          echo '      { "path": "firmware.bin", "offset": 65536 }' >> package/manifest.json
-          echo '    ]' >> package/manifest.json
-          echo '  }]' >> package/manifest.json
-          echo '}' >> package/manifest.json
-          cat package/manifest.json
+          # Get firmware version for manifest
+          VERSION=$(cat firmware/version.properties 2>/dev/null | grep "version=" | cut -d= -f2 || echo "2.7.15")
 
-      - name: Zip package
+          # Write manifest.json matching exact format expected by flasher.meshtastic.org
+          cat > package/manifest.json << MANIFEST
+{
+  "name": "Meshtastic",
+  "version": "${VERSION}",
+  "home_assistant_domain": "meshtastic",
+  "funding_url": "https://opencollective.com/meshtastic",
+  "new_install_prompt_erase": true,
+  "builds": [
+    {
+      "chipFamily": "ESP32-S3",
+      "parts": [
+        { "path": "bootloader.bin", "offset": 0 },
+        { "path": "partitions.bin", "offset": 32768 },
+        { "path": "firmware.bin", "offset": 65536 }
+      ]
+    }
+  ]
+}
+MANIFEST
+          cat package/manifest.json
+          ls -lh package/
+
+      - name: Create flasher zip
         working-directory: package
         run: zip ../meshtastic-xiao-wio-sx1262.zip bootloader.bin partitions.bin firmware.bin manifest.json
 
