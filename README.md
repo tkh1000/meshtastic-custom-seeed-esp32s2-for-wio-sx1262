@@ -82,6 +82,7 @@ python3 -m pip install esptool
 
 cd ~/Downloads/[EXTRACTED ARTIFACTS FOLDER]
 
+python3 -m esptool --chip esp32s3 --port /dev/tty.usbmodem1101 --baud 921600 erase_flash
 
 python3 -m esptool --chip esp32s3 --port /dev/tty.usbmodem101 --baud 921600 write_flash 0x0000 bootloader.bin 0x8000 partitions.bin 0x10000 firmware.bin
 
