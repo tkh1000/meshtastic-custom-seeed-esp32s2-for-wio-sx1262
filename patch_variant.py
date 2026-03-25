@@ -31,6 +31,9 @@ PIN_BLOCK = """
 #undef GPS_RX_PIN
 #undef GPS_TX_PIN
 #undef HAS_GPS
+#undef I2C_SDA
+#undef I2C_SCL
+#undef HAS_WIRE
 
 #define USE_SX1262
 #define LORA_MOSI        9
@@ -51,7 +54,8 @@ PIN_BLOCK = """
 #define PIN_SPI_MISO     8
 #define PIN_SPI_SCK      7
 #define PIN_SPI_SS       5
-#define HAS_GPS 0
+#define HAS_GPS          0
+#define HAS_WIRE         0
 """
 
 def patch_header(path):
@@ -74,6 +78,8 @@ if pio_ini.exists():
         text = re.sub(r'\s*-D' + pin + r'=\d+', '', text)
     pio_ini.write_text(text)
     print("Patched platformio.ini")
+else:
+    print("platformio.ini not found at", pio_ini)
 
 for ini_file in firmware_dir.rglob("*.ini"):
     text = ini_file.read_text()
