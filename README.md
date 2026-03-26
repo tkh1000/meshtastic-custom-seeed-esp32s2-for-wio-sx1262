@@ -30,7 +30,8 @@ Custom firmware reprogrammed to use the pins available on the seeed board, direc
 | LORA_SCK*        | D8           |
 | D7        | D7           |
 
-
+| SX1262 Pin      |SEEED ESP32s3 Pin (NOT GPIO) |
+|-----------------|-------------|
 | D0        | D0           |
 | LORA_DIO1*       | D1           |
 | LORA_RESET*      | D2           |
