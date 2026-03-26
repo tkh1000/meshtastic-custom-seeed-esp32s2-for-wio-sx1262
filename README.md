@@ -5,6 +5,7 @@ This repo auto-builds a custom Meshtastic firmware for the **Seeed Wio-SX1262-fo
 standalone board connected to a **Seeed XIAO ESP32S3** via the physical edge header pins —
 **not** the B2B (board-to-board) surface connector used in the official kit. You can also just download the latest .zip I have and flash it using esptools. Still working on how get this working on the webflasher anyone want to help lmk ok thx byeeee. 
 
+If this helped you, consider buying me a coffee. Thanks in advance! https://buymeacoffee.com/tkh1000
 ---
 
 ## The Problem
@@ -67,7 +68,7 @@ How to Build (GitHub Actions — no software needed on your PC)
 
 - Enjoy!
   
-  
+  If this helped you, consider buying me a coffee. Thanks in advance! https://buymeacoffee.com/tkh1000
   
 
 
