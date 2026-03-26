@@ -26,18 +26,18 @@ Custom firmware reprogrammed to use the pins available on the seeed board, direc
 | VIN      | VIN         |
 | GND*      | GND         |
 | 3v3*       | 3v3           |
-| LORA_MOSI*       | D10          |
-| LORA_MISO*       | D9           |
-| LORA_SCK*        | D8           |
+| MOSI*       | D10          |
+| MISO*       | D9           |
+| SCK*        | D8           |
 | D7        | D7           |
 
 | SX1262 Pin      |SEEED ESP32s3 Pin (NOT GPIO) |
 |-----------------|-------------|
 | D0        | D0           |
-| LORA_DIO1*       | D1           |
-| LORA_RESET*      | D2           |
-| LORA_BUSY*      | D3           |
-| LORA_CS*         | D4           |
+| D1O1*       | D1           |
+| RESET*      | D2           |
+| BUSY*      | D3           |
+| CS/NSS*         | D4           |
 | RF_SW        | D5           | <- re-programmed so init doesnt hang for a minute 
 | D6        | D6           |
 
