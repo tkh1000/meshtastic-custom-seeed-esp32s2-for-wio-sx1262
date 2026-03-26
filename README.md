@@ -18,7 +18,7 @@ Wio SX1262 board and wired it yourself (like my dumbarse did) those pins are wro
 
 Custom firmware reprogrammed to use the pins available on the seeed board, directly stacked too so you don't need to use jumper cables. 
 
-**header-accessible pins**: *big disclaimer that the pin numbers on dev board are actually different that the gpio pins of the actually chip* Astric means connection is required, all other pins can stack normally as such for ease or disconnected. 
+**header-accessible pins**: *big disclaimer that the pin numbers on dev board are actually different that the gpio pins of the actually chip* Astrix means connection is required, all other pins can stack normally as such for ease or disconnected. 
  
 | SX1262 Pin      |SEEED ESP32s3 Pin (NOT GPIO) |
 |-----------------|-------------|
